@@ -192,24 +192,29 @@ async def scrape_today_events() -> list[Venue]:
             r'(?!<strong><a)([^<]{2,})<span'
         )
 
-        matched_positions = set()
+        # Collect all events with their HTML position so we can sort by appearance order
+        all_matches = []
 
         for m in fav_pattern.finditer(venue_section):
             time_str = m.group(1)
             name = m.group(2).strip().replace("&amp;", "&")
             tip = "Tip" in venue_section[m.end():m.end() + 300]
-            venue.events.append(Event(time=time_str, name=name, is_favorite=True, tip=tip))
-            matched_positions.add(m.start())
+            all_matches.append((m.start(), Event(time=time_str, name=name, is_favorite=True, tip=tip)))
 
         for m in nonfav_pattern.finditer(venue_section):
-            if m.start() in matched_positions:
+            # Skip if this position was already matched as a favorite
+            if any(m.start() == pos for pos, _ in all_matches):
                 continue
             time_str = m.group(1)
             name = m.group(2).strip().replace("&amp;", "&")
             if not name or name.startswith("<"):
                 continue
-            venue.events.append(Event(time=time_str, name=name, is_favorite=False))
-            matched_positions.add(m.start())
+            all_matches.append((m.start(), Event(time=time_str, name=name, is_favorite=False)))
+
+        # Sort by HTML position (= website order)
+        all_matches.sort(key=lambda x: x[0])
+        for _, event in all_matches:
+            venue.events.append(event)
 
         # Remove exact duplicates (same time + name), preserve website order
         seen = set()
