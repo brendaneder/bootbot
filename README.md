@@ -111,8 +111,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for details on each component.
 |------|------|
 | Green API (free tier) | $0/mo |
 | VPS (Vultr cheapest) | $5/mo |
-| Prepaid SIM for bot number | ~$5 one-time |
-| **Total** | **~$5/mo** |
+| Digital SIM | $8/mo |
+| **Total** | **$13/mo** |
 
 ## Files
 
