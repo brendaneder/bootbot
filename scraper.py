@@ -174,7 +174,7 @@ async def scrape_today_events() -> list[Venue]:
     venue_matches = list(venue_pattern.finditer(section))
 
     for i, match in enumerate(venue_matches):
-        venue_name = match.group(1).strip()
+        venue_name = match.group(1).strip().replace("&amp;", "&")
         v_start = match.end()
         v_end = venue_matches[i + 1].start() if i + 1 < len(venue_matches) else len(section)
         venue_section = section[v_start:v_end]
@@ -276,7 +276,10 @@ def format_poll_question(venues: list[Venue]) -> tuple[str, list[str]]:
     for v in venues:
         options.append(v.format_poll_option_short())
 
-    return question, options
+    # WhatsApp polls max out at 12 options — split into multiple polls if needed
+    option_chunks = [options[i:i+12] for i in range(0, len(options), 12)]
+
+    return question, option_chunks
 
 
 if __name__ == "__main__":

@@ -77,11 +77,13 @@ async def main():
         logger.info("No venues with events found for today. Nothing to send.")
         return
 
-    question, options = format_poll_question(venues)
+    question, option_chunks = format_poll_question(venues)
 
-    logger.info(f"Poll: {question}")
-    for i, opt in enumerate(options, 1):
-        logger.info(f"  {i}) {opt}")
+    for chunk_idx, options in enumerate(option_chunks):
+        label = f" (part {chunk_idx + 1})" if len(option_chunks) > 1 else ""
+        logger.info(f"Poll{label}: {question}")
+        for i, opt in enumerate(options, 1 + chunk_idx * 12):
+            logger.info(f"  {i}) {opt}")
 
     if dry_run:
         print("\n[DRY RUN] Poll not sent.")
@@ -92,13 +94,16 @@ async def main():
         print("  Run: python bot.py --list-groups")
         return
 
-    # Send poll
-    logger.info(f"Sending poll to {group_id}...")
-    result = client.send_poll(group_id, question, options)
+    # Send poll(s)
+    for chunk_idx, options in enumerate(option_chunks):
+        label = f" (part {chunk_idx + 1})" if len(option_chunks) > 1 else ""
+        poll_question = f"{question}{label}"
+        logger.info(f"Sending poll{label} to {group_id}...")
+        result = client.send_poll(group_id, poll_question, options)
 
-    if "idMessage" not in result:
-        logger.error(f"Poll failed: {result}")
-        return
+        if "idMessage" not in result:
+            logger.error(f"Poll{label} failed: {result}")
+            return
 
     # Send follow-up message
     follow_up = config.get("follow_up_message",
