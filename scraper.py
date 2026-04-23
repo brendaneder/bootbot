@@ -23,13 +23,14 @@ class Venue:
     def has_favorite(self) -> bool:
         return any(e.is_favorite for e in self.events)
 
-    def format_poll_option_short(self) -> str:
+    def format_poll_option_short(self, max_len: int = 100) -> str:
         """Shorter format for poll option (WhatsApp has character limits)."""
-        # Simplify lesson names, preserve website order
+        # Simplify lesson names and apply generic abbreviations
         simplified = []
         for e in self.events:
             t = _format_time(e.time)
             name = _simplify_lesson(e.name)
+            name = _apply_abbreviations(name)
             simplified.append((t, name))
 
         # Merge consecutive lessons of the same brand into one entry
@@ -38,27 +39,66 @@ class Venue:
         for t, n in simplified:
             if "Lesson" in n:
                 if n not in seen_lessons:
-                    # First occurrence of this lesson brand — keep it
                     seen_lessons.add(n)
-                    merged.append((t, n))
-                # Skip duplicates of same brand
+                    merged.append([t, n])
             else:
-                merged.append((t, n))
+                merged.append([t, n])
 
-        parts = [f"{t} {n}" for t, n in merged]
-        result = f"{self.name}: {', '.join(parts)}"
+        def build():
+            parts = [f"{t} {n}" for t, n in merged]
+            return f"{self.name}: {', '.join(parts)}"
 
-        # Truncate to fit WhatsApp's ~100 char poll option limit
-        if len(result) > 100:
-            result = result[:97] + "..."
+        # Progressive truncation: apply passes in order, longest name first.
+        # Skip lesson entries — they're already abbreviated and shouldn't be truncated.
+        for pass_idx in range(len(TRUNCATION_PASSES)):
+            if len(build()) <= max_len:
+                break
+            while len(build()) > max_len:
+                # Try longest truncatable name first (excluding lessons)
+                candidates = sorted(
+                    [i for i in range(len(merged)) if "Lesson" not in merged[i][1]],
+                    key=lambda i: -len(merged[i][1]),
+                )
+                truncated_any = False
+                for i in candidates:
+                    new_name = _try_truncate(merged[i][1], pass_idx)
+                    if new_name is not None and new_name != merged[i][1]:
+                        merged[i][1] = new_name
+                        truncated_any = True
+                        break
+                if not truncated_any:
+                    break
 
+        result = build()
+        # Final hard fallback — cut at the limit with an ellipsis
+        if len(result) > max_len:
+            result = result[: max_len - 3] + "..."
         return result
 
 
 def _simplify_lesson(name: str) -> str:
     """Simplify lesson event names."""
     lower = name.lower()
-    if "lesson" not in lower and "native texan" not in lower:
+
+    # "Hill Country" always indicates the lesson group — treat as lesson regardless of context.
+    # Other brands require dance/level context, so that non-lesson events hosted by the brand
+    # (e.g. "Neon Rainbows: Spring Formal") aren't mistakenly collapsed to "NR Lesson".
+    always_lesson_brands = ["hill country"]
+    contextual_brands = [
+        "native texan",
+        "dancin austin",
+        "dancin' austin",
+        "double or nothing",
+        "neon rainbow",
+    ]
+    dance_context = ("two step" in lower or "line dance" in lower
+                     or "advanced" in lower or "intermediate" in lower or "beginner" in lower)
+    has_always_brand = any(b in lower for b in always_lesson_brands)
+    has_contextual_brand = any(b in lower for b in contextual_brands)
+
+    if ("lesson" not in lower
+            and not has_always_brand
+            and not (has_contextual_brand and dance_context)):
         return name
 
     # Determine the lesson brand
@@ -90,6 +130,56 @@ def _simplify_lesson(name: str) -> str:
     if brand:
         return f"{brand} Lesson{level}"
     return f"Lesson{level}"
+
+
+# Generic abbreviations applied to any event name (case-insensitive).
+# Currently empty — brand abbreviations are handled by _simplify_lesson.
+GENERIC_ABBREVIATIONS: dict[str, str] = {}
+
+
+def _apply_abbreviations(name: str) -> str:
+    """Apply generic abbreviations. Currently a no-op; kept for future use."""
+    for full, abbr in GENERIC_ABBREVIATIONS.items():
+        name = re.sub(re.escape(full), abbr, name, flags=re.IGNORECASE)
+    return name
+
+
+# Progressive truncation passes, applied in priority order.
+# Each pass lists split patterns. Everything from the match onward is dropped.
+TRUNCATION_PASSES = [
+    # Pass 1: drop descriptive/subtitle suffixes first (least important)
+    [": ", " - ", " ("],
+    # Pass 2: drop "& The / & His / & Her" backup-band suffixes
+    [" & the ", " and the ", " & his ", " and his ", " & her ", " and her "],
+    # Pass 3: drop "with / featuring"
+    [" W/ ", " w/ ", " W/", " w/", " With ", " with ", " Feat. ", " feat. ", " Ft. ", " ft. "],
+    # Pass 4: drop collaboration marker
+    [" + "],
+    # Pass 5 (special): drop "& X" / "and X" where X contains a backup-band word
+    None,
+]
+
+_SAFE_TAIL_WORDS = ["friends", "band", "co.", "company", "boys", "girls", "crew"]
+
+
+def _try_truncate(name: str, pass_idx: int) -> str | None:
+    """Try to truncate name using the rules for the given pass. Returns new name or None."""
+    low = name.lower()
+    if pass_idx < len(TRUNCATION_PASSES) - 1:
+        patterns = TRUNCATION_PASSES[pass_idx]
+        for pat in patterns:
+            idx = low.find(pat.lower())
+            if idx > 0:
+                return name[:idx].rstrip()
+    elif pass_idx == len(TRUNCATION_PASSES) - 1:
+        # Special pass: "& X" / "and X" where X contains a backup-band word
+        for connector in [" & ", " and "]:
+            idx = low.find(connector)
+            if idx > 0:
+                tail_low = low[idx + len(connector):]
+                if any(word in tail_low for word in _SAFE_TAIL_WORDS):
+                    return name[:idx].rstrip()
+    return None
 
 
 def _format_time(raw: str) -> str:
