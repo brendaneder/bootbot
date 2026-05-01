@@ -156,7 +156,9 @@ TRUNCATION_PASSES = [
     # Pass 4: drop collaboration marker
     [" + "],
     # Pass 5 (special): drop "& X" / "and X" where X contains a backup-band word
-    None,
+    "BACKUP_BAND_WORD",
+    # Pass 6 (special): drop "'s X" possessive suffix (e.g. "Jack Fister's Wildlife" -> "Jack Fister")
+    "POSSESSIVE",
 ]
 
 _SAFE_TAIL_WORDS = ["friends", "band", "co.", "company", "boys", "girls", "crew"]
@@ -164,21 +166,34 @@ _SAFE_TAIL_WORDS = ["friends", "band", "co.", "company", "boys", "girls", "crew"
 
 def _try_truncate(name: str, pass_idx: int) -> str | None:
     """Try to truncate name using the rules for the given pass. Returns new name or None."""
+    pass_rule = TRUNCATION_PASSES[pass_idx]
     low = name.lower()
-    if pass_idx < len(TRUNCATION_PASSES) - 1:
-        patterns = TRUNCATION_PASSES[pass_idx]
-        for pat in patterns:
-            idx = low.find(pat.lower())
-            if idx > 0:
-                return name[:idx].rstrip()
-    elif pass_idx == len(TRUNCATION_PASSES) - 1:
-        # Special pass: "& X" / "and X" where X contains a backup-band word
+
+    if pass_rule == "BACKUP_BAND_WORD":
+        # "& X" / "and X" where X contains a backup-band word
         for connector in [" & ", " and "]:
             idx = low.find(connector)
             if idx > 0:
                 tail_low = low[idx + len(connector):]
                 if any(word in tail_low for word in _SAFE_TAIL_WORDS):
                     return name[:idx].rstrip()
+        return None
+
+    if pass_rule == "POSSESSIVE":
+        # "'s " or "'s " (curly) — drop possessive suffix if dropped text >= 5 chars
+        for apos in ["'s ", "’s "]:
+            idx = name.find(apos)
+            if idx > 0:
+                dropped = name[idx + len(apos):]
+                if len(dropped) >= 5:
+                    return name[:idx].rstrip()
+        return None
+
+    # Normal patterns (lists)
+    for pat in pass_rule:
+        idx = low.find(pat.lower())
+        if idx > 0:
+            return name[:idx].rstrip()
     return None
 
 
