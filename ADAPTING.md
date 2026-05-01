@@ -106,8 +106,12 @@ The bot includes a daily trivia feature pulling from `facts.json`.
 
 ## Deploying to a server (~$5/mo)
 
-Any cheap Linux VPS works (Vultr, DigitalOcean, Hetzner, etc.). After
-SSHing in:
+Any cheap Linux VPS works (Vultr, DigitalOcean, Hetzner, etc.).
+
+> **Tip:** Vultr currently offers $250 in signup credits for new accounts.
+> At the cheapest $5/mo plan that's effectively ~4 years of free hosting.
+
+After SSHing in:
 
 ```bash
 sudo apt update && sudo apt install -y python3-pip python3-venv
