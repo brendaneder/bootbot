@@ -36,7 +36,7 @@ def load_config() -> dict:
         return json.load(f)
 
 
-async def scrape_week_events() -> list[dict]:
+async def scrape_swing_events() -> list[dict]:
     """Fetch events for the next 7 days using Google Calendar API."""
     config = load_config()
     calendar_id = config.get("swing_google_calendar_id", "")

@@ -17,7 +17,7 @@ from pathlib import Path
 
 import facts
 from scraper import scrape_today_events, format_poll_question
-from swing import scrape_week_events as scrape_swing_events, build_swing_message
+from swing import scrape_swing_events, build_swing_message
 from whatsapp_api import GreenApiClient
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
