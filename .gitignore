@@ -1,5 +1,5 @@
 config.json
-bot.log
+*.log
 band_names.txt
 __pycache__/
 *.pyc
