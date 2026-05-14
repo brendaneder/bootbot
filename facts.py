@@ -1,9 +1,22 @@
 """TwoStep Trivia — load facts.json and pick today's fact."""
+import argparse
 import json
 from datetime import date
 from pathlib import Path
+import logging
 
 FACTS_PATH = Path(__file__).parent / "facts.json"
+LOG_PATH = Path(__file__).parent / "facts.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_PATH),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 
 def get_fact(today: date | None = None) -> dict | None:
@@ -50,13 +63,28 @@ def format_fact(fact: dict) -> str:
     return line
 
 
+def preview_fact(target: date = date.today()):
+    fact = get_fact(target)
+    if fact is None:
+        logger.info(f"No fact for {target}.")
+    else:
+        logger.info(f"Fact for {target}: {format_fact(fact)}")
+
+
 if __name__ == "__main__":
     # Quick preview — show today's fact, or a specific date
-    import sys
-    if len(sys.argv) > 1:
-        d = date.fromisoformat(sys.argv[1])
-    else:
-        d = date.today()
+    parser = argparse.ArgumentParser(
+        description="Preview TwoStep Trivia for today or a specific date."
+    )
+    parser.add_argument(
+        "date",
+        nargs="?",
+        default=date.today().isoformat(),
+        type=date.fromisoformat,
+        help="ISO date (YYYY-MM-DD). Defaults to today.",
+    )
+    args = parser.parse_args()
+    d = args.date
     fact = get_fact(d)
     if fact is None:
         data = json.loads(FACTS_PATH.read_text(encoding="utf-8"))

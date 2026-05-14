@@ -101,6 +101,7 @@ class GreenApiClient:
 
     def list_groups(self) -> list[dict]:
         """List all groups the bot is a member of."""
+        logger.info("Fetching groups...")
         resp = requests.get(
             self._url("getContacts") + "?group=true",
             timeout=30,
@@ -109,6 +110,14 @@ class GreenApiClient:
         if resp.status_code == 200:
             contacts = resp.json()
             groups = [c for c in contacts if c.get("type") == "group" or c.get("id", "").endswith("@g.us")]
+            if not groups:
+                logger.warning("No groups found. Is the bot's number in any groups?")
+            logger.info(f"\nFound {len(groups)} groups:")
+            for g in groups:
+                name = g.get("name", g.get("contactName", "Unknown"))
+                gid = g.get("id", "Unknown")
+                logger.info(f"  {name} — {gid}")
+            logger.info("\nCopy the group ID and paste it into config.json as 'group_id'.")
             return groups
         else:
             logger.error(f"Failed to list groups: {resp.status_code} — {resp.text}")
