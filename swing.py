@@ -128,5 +128,6 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
         if swing_event:
             lines.append(swing_event)
 
+    lines.append("\nFeedback? Reply to this message or DM Ari Frankel (chat admin)")
     message = "\n\n".join(lines)
     return message

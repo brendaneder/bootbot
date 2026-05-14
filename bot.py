@@ -112,6 +112,7 @@ async def main(args: argparse.Namespace):
         return
 
     client = GreenApiClient(config["green_api_instance_id"], config["green_api_token"])
+    group_id = config["swing_group_id"] if args.swing else config["group_id"]
 
     if args.list_groups:
         return client.list_groups()
@@ -125,7 +126,7 @@ async def main(args: argparse.Namespace):
             logging.info("\n[DRY RUN] Swing message:\n")
             logging.info(message)
         else:
-            client.send_message(config["group_id"], message)
+            client.send_message(group_id, message)
             logger.info("Swing weekly roundup sent.")
     else:
         question, option_chunks = format_poll_question(twostep_venues)
@@ -140,13 +141,13 @@ async def main(args: argparse.Namespace):
         for chunk_idx, options in enumerate(option_chunks):
             label = f" (part {chunk_idx + 1})" if len(option_chunks) > 1 else ""
             poll_question = f"{question}{label}"
-            logger.info(f"Sending poll{label} to {config['group_id']}...")
+            logger.info(f"Sending poll{label} to {group_id}...")
             if dry_run:
                 logging.info("\n[DRY RUN] Poll:\n")
                 logging.info(poll_question)
                 logging.info(options)
             else:
-                result = client.send_poll(config["group_id"], poll_question, options)
+                result = client.send_poll(group_id, poll_question, options)
 
                 if "idMessage" not in result:
                     logger.error(f"Poll{label} failed: {result}")
@@ -170,7 +171,7 @@ async def main(args: argparse.Namespace):
             logging.info("\n[DRY RUN] Follow-up message:\n")
             logging.info(follow_up)
         else:
-            client.send_message(config["group_id"], follow_up)
+            client.send_message(group_id, follow_up)
 
     logger.info("Done!")
 
