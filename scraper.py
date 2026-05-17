@@ -46,7 +46,7 @@ class Venue:
 
         def build():
             parts = [f"{t} {n}" for t, n in merged]
-            return f"{self.name}: {', '.join(parts)}"
+            return f"{_display_venue_name(self.name)}: {', '.join(parts)}"
 
         # Progressive truncation: apply passes in order, longest name first.
         # Skip lesson entries — they're already abbreviated and shouldn't be truncated.
@@ -369,6 +369,44 @@ DAY_TITLES = {
 }
 
 
+# Priority venues — always appear first in the poll (in this order) if they have
+# events today. Matched case-insensitively against the scraped venue name
+# (apostrophes normalized away).
+PRIORITY_VENUES = [
+    "sagebrush",
+    "sams town point",
+    "whitehorse",
+    "jos hot coffee",
+    "highball",
+]
+
+# Display-name overrides — how the venue label appears in the poll option.
+VENUE_DISPLAY_NAMES = [
+    ("sams town point", "Sams"),
+    ("jos hot coffee", "Jo's"),
+]
+
+
+def _norm_venue(name: str) -> str:
+    return name.lower().replace("'", "").replace("’", "")
+
+
+def _display_venue_name(name: str) -> str:
+    n = _norm_venue(name)
+    for key, display in VENUE_DISPLAY_NAMES:
+        if key in n:
+            return display.upper()
+    return name.upper()
+
+
+def _priority_index(venue: "Venue") -> int:
+    n = _norm_venue(venue.name)
+    for i, key in enumerate(PRIORITY_VENUES):
+        if key in n:
+            return i
+    return len(PRIORITY_VENUES)
+
+
 def format_poll_question(venues: list[Venue]) -> tuple[str, list[str]]:
     """Format venues into a WhatsApp poll question and options."""
     today = datetime.now()
@@ -377,12 +415,24 @@ def format_poll_question(venues: list[Venue]) -> tuple[str, list[str]]:
     candidates = DAY_TITLES.get(day_name, []) + WITTY_TITLES
     question = random.choice(candidates)
 
+    # Promote priority venues to the top (in the configured order); preserve the
+    # site's original order for everything else.
+    priority = sorted(
+        (v for v in venues if _priority_index(v) < len(PRIORITY_VENUES)),
+        key=_priority_index,
+    )
+    rest = [v for v in venues if _priority_index(v) >= len(PRIORITY_VENUES)]
+    venues = priority + rest
+
     options = []
     for v in venues:
         options.append(v.format_poll_option_short())
 
-    # WhatsApp polls max out at 12 options — split into multiple polls if needed
+    # WhatsApp polls max out at 12 options — split into multiple polls if needed.
+    # Polls also require >=2 options, so rebalance if the overflow chunk is a single.
     option_chunks = [options[i:i+12] for i in range(0, len(options), 12)]
+    if len(option_chunks) > 1 and len(option_chunks[-1]) == 1:
+        option_chunks[-1].insert(0, option_chunks[-2].pop())
 
     return question, option_chunks
 
