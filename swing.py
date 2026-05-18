@@ -28,6 +28,8 @@ SWING_BANDS = [
     'Heybale',
     'Bob Wills Night W/the Super Swing Revue',
     'Linda Gail Lewis',
+    'Hot Club of Cowtown',
+    'Georgia Parker'
 ]
 
 
