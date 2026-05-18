@@ -101,11 +101,17 @@ async def scrape_swing_events() -> list[dict]:
     return events
 
 
+def get_attr(obj, key, default=""):
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
 def parse_swing_event(venue: dict) -> str:
     # swing event fields
-    raw_start = venue.get("start", "") or venue.get("time", "")
-    summary = venue.get("summary", "") or venue.get("name", "")
-    location = venue.get("location", "") or venue.get("location", "")
+    raw_start = get_attr(venue, "start") or get_attr(venue, "time")
+    summary = get_attr(venue, "summary") or get_attr(venue, "name")
+    location = get_attr(venue, "location")
     try:
         if "T" in raw_start:
             dt = datetime.fromisoformat(raw_start)
