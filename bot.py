@@ -120,8 +120,10 @@ async def main(args: argparse.Namespace):
     twostep_venues, swing_events = await gather_events(args.swing)
 
     if args.swing:
-        message = build_swing_message(twostep_venues, swing_events)
-
+        message, num_events = build_swing_message(twostep_venues, swing_events)
+        if num_events == 0:
+            logger.info("No swing events found for today")
+            return
         if dry_run:
             logging.info("\n[DRY RUN] Swing message:\n")
             logging.info(message)

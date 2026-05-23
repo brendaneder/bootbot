@@ -124,7 +124,7 @@ def parse_swing_event(venue: dict) -> str:
     return f"*{label}*\n{summary} @ {location}"
 
 
-def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) -> str:
+def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) -> (str, int):
     lines = ["💃🕺 *Swing dancing today in Austin!*\n"]
     for venue in twostep_venues:
         for venue_event in venue.events:
@@ -138,4 +138,4 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
 
     lines.append("\nFeedback? Reply to this message or DM Ari Frankel (chat admin)")
     message = "\n\n".join(lines)
-    return message
+    return message, len(swing_events)
