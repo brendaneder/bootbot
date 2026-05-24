@@ -29,7 +29,10 @@ SWING_BANDS = [
     'Bob Wills Night W/the Super Swing Revue',
     'Linda Gail Lewis',
     'Hot Club of Cowtown',
-    'Georgia Parker'
+    'Georgia Parker',
+    'Twisted Swingers Feat. Alice Spencer',
+    'Strictly Hardly Marty Party',
+    'Floyd Domino\'s All Stars'
 ]
 
 
