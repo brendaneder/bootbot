@@ -112,6 +112,7 @@ def parse_swing_event(venue: dict) -> str:
     raw_start = get_attr(venue, "start") or get_attr(venue, "time")
     summary = get_attr(venue, "summary") or get_attr(venue, "name")
     location = get_attr(venue, "location")
+    description = get_attr(venue, "description")
     try:
         if "T" in raw_start:
             dt = datetime.fromisoformat(raw_start)
@@ -121,7 +122,7 @@ def parse_swing_event(venue: dict) -> str:
             label = dt.strftime("%-I:%M")
     except ValueError:
         label = raw_start
-    return f"*{label}*\n{summary} @ {location}"
+    return f"*{label}*\n{summary} {'@' + location if location else ''}\n\n{description}"
 
 
 def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) -> (str, int):
@@ -129,6 +130,7 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
     for venue in twostep_venues:
         for venue_event in venue.events:
             if venue_event.name in SWING_BANDS:
+                setattr(venue_event, "location", venue.name)
                 swing_events += [venue_event]
 
     for venue in swing_events:
