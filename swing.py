@@ -24,15 +24,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 SWING_BANDS = [
-    'Little Elmore Reed Blues Band',
-    'Heybale',
-    'Bob Wills Night W/the Super Swing Revue',
-    'Linda Gail Lewis',
-    'Hot Club of Cowtown',
-    'Georgia Parker',
-    'Twisted Swingers Feat. Alice Spencer',
-    'Strictly Hardly Marty Party',
-    'Floyd Domino\'s All Stars'
+    'little elmore reed blues band',
+    'heybale',
+    'bob wills night w/the super swing revue',
+    'linda gail lewis',
+    'hot club of cowtown',
+    'georgia parker',
+    'twisted swingers feat. alice spencer',
+    'strictly hardly marty party',
+    'floyd domino\'s all stars'
 ]
 
 
@@ -132,7 +132,7 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
     lines = ["💃🕺 *Swing dancing today in Austin!*\n"]
     for venue in twostep_venues:
         for venue_event in venue.events:
-            if venue_event.name in SWING_BANDS:
+            if venue_event.name.lower() in SWING_BANDS:
                 setattr(venue_event, "location", venue.name)
                 swing_events += [venue_event]
 
