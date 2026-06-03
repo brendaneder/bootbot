@@ -32,7 +32,9 @@ SWING_BANDS = [
     'georgia parker',
     'twisted swingers feat. alice spencer',
     'strictly hardly marty party',
-    'floyd domino\'s all stars'
+    'floyd domino\'s all stars',
+    'louisiana surf department',
+    'theo lawrence'
 ]
 
 
