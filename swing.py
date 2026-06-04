@@ -136,7 +136,7 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
         for venue_event in venue.events:
             if venue_event.name.lower() in SWING_BANDS:
                 setattr(venue_event, "location", venue.name)
-                swing_events += [venue_event]
+                swing_events.insert(0, venue_event)
 
     for venue in swing_events:
         swing_event = parse_swing_event(venue)
