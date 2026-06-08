@@ -134,9 +134,11 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
     lines = ["💃🕺 *Swing dancing today in Austin!*\n"]
     for venue in twostep_venues:
         for venue_event in venue.events:
-            if venue_event.name.lower() in SWING_BANDS:
-                setattr(venue_event, "location", venue.name)
-                swing_events.insert(0, venue_event)
+            for swing_band in SWING_BANDS:
+                if swing_band in venue_event.name.lower():
+                    setattr(venue_event, "location", venue.name)
+                    swing_events.insert(0, venue_event)
+                    break
 
     for venue in swing_events:
         swing_event = parse_swing_event(venue)
