@@ -117,6 +117,8 @@ def parse_swing_event(venue: dict) -> str:
     summary = get_attr(venue, "summary") or get_attr(venue, "name")
     location = get_attr(venue, "location")
     description = get_attr(venue, "description")
+    if "austin swing syndicate" in summary.lower():
+        description = ""
     try:
         if "T" in raw_start:
             dt = datetime.fromisoformat(raw_start)
