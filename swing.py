@@ -130,7 +130,7 @@ def parse_swing_event(venue: dict) -> str:
             label = dt.strftime("%-I:%M")
     except ValueError:
         label = raw_start
-    return f"*{label}*\n{summary} {'@' + location if location else ''}\n\n{description}"
+    return f"*{label}*\n{summary} {'@' + location if location else ''}\n{description}"
 
 
 def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) -> (str, int):
@@ -149,5 +149,5 @@ def build_swing_message(twostep_venues: list[dict], swing_events: list[dict]) ->
             lines.append(swing_event)
 
     lines.append("\nFeedback? Reply to this message or DM Ari Frankel (chat admin)")
-    message = "\n\n".join(lines)
+    message = "\n".join(lines)
     return message, len(swing_events)
