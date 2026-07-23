@@ -119,7 +119,7 @@ def parse_swing_event(venue: dict) -> str:
     location = get_attr(venue, "location")
     description = get_attr(venue, "description")
     for verbose_event in ["austin swing syndicate", "lindy launchpad"]:
-        if verbose_event in summary.lower():
+        if verbose_event in summary.lower() or verbose_event in description.lower():
             description = ""
     try:
         if "T" in raw_start:
