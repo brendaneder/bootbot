@@ -12,6 +12,8 @@ CONFIG_PATH = Path(__file__).parent / "config.json"
 
 LOG_PATH = Path(__file__).parent / "swing.log"
 
+VERBOSE_EVENTS = ["austin swing syndicate", "lindy launchpad", "Wednesday Night Shag"]
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -118,7 +120,7 @@ def parse_swing_event(venue: dict) -> str:
     summary = get_attr(venue, "summary") or get_attr(venue, "name")
     location = get_attr(venue, "location")
     description = get_attr(venue, "description")
-    for verbose_event in ["austin swing syndicate", "lindy launchpad"]:
+    for verbose_event in VERBOSE_EVENTS:
         if verbose_event in summary.lower() or verbose_event in description.lower():
             description = ""
     try:
