@@ -26,17 +26,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 SWING_BANDS = [
-    'little elmore reed blues band',
+    'little elmore reed',
     'heybale',
-    'bob wills night w/the super swing revue',
+    'bob wills',
     'linda gail lewis',
-    'hot club of cowtown',
+    'cowtown',
     'georgia parker',
-    'twisted swingers feat. alice spencer',
+    'twisted swingers',
     'strictly hardly marty party',
-    'floyd domino\'s all stars',
+    'floyd domino',
     'theo lawrence',
-    'candler wilkinson'
+    'candler wilkinson',
 ]
 
 
