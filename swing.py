@@ -12,7 +12,7 @@ CONFIG_PATH = Path(__file__).parent / "config.json"
 
 LOG_PATH = Path(__file__).parent / "swing.log"
 
-VERBOSE_EVENTS = ["austin swing syndicate", "lindy launchpad", "Shag"]
+VERBOSE_EVENTS = ["austin swing syndicate", "lindy launchpad", "shag", "cherrywood"]
 
 # Set up logging
 logging.basicConfig(
